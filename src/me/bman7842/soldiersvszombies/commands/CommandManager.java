@@ -1,5 +1,6 @@
 package me.bman7842.soldiersvszombies.commands;
 
+import me.bman7842.soldiersvszombies.commands.subcommands.*;
 import me.bman7842.soldiersvszombies.utils.Messages;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -20,6 +21,17 @@ public class CommandManager implements CommandExecutor {
     private HashMap<String, SubCommand> cmds;
     public static Permission svszAdmin = new Permission("svsz.Admin");
 
+    public CommandManager() {
+        this.cmds = new HashMap<String, SubCommand>();
+        cmds.put("arenalist", new arenaList());
+        cmds.put("createarena", new createArena());
+        cmds.put("join", new join());
+        cmds.put("setghostspawn", new setGhostSpawn());
+        cmds.put("setlobbyspawn", new setLobbySpawn());
+        cmds.put("setzombiespawn", new setZombieSpawn());
+        cmds.put("setsoldierspawn", new setSoldierSpawn());
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -30,24 +42,29 @@ public class CommandManager implements CommandExecutor {
         Player p = (Player) sender;
 
         if (cmd.getName().equalsIgnoreCase("svsz")) {
-            String sub = args[0];
+            if (args.length == 0) {
+                Messages.sendErrorMessage(p, "Type /svsz help to find help for the plugin!");
+            } else {
 
-            if (sub.equalsIgnoreCase("help")) {
-                p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "GAMEMODE " + ChatColor.GREEN + "" + ChatColor.BOLD + "HELP:");
-                msgHelp(p);
-                return false;
-            }
+                String sub = args[0];
 
-            Vector<String> l = new Vector<String>();
-            l.addAll(Arrays.asList(args));
-            l.remove(0);
-            args = l.toArray(new String[0]);
-            try {
-                cmds.get(sub).onCommand(p, args);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Messages.sendErrorMessage(p, "Could not find the command '" + args.toString().trim() + "'!");
-                return true;
+                if (sub.equalsIgnoreCase("help")) {
+                    p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "GAMEMODE " + ChatColor.GREEN + "" + ChatColor.BOLD + "HELP:");
+                    msgHelp(p);
+                    return false;
+                }
+
+                Vector<String> l = new Vector<String>();
+                l.addAll(Arrays.asList(args));
+                l.remove(0);
+                args = l.toArray(new String[0]);
+                try {
+                    cmds.get(sub).onCommand(p, args);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Messages.sendErrorMessage(p, "Could not find the command '" + args.toString().trim() + "'!");
+                    return true;
+                }
             }
         }
 

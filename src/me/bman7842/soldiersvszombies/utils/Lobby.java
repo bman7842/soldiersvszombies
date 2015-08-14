@@ -36,4 +36,7 @@ public class Lobby {
         return false;
     }
 
+    public HashSet<Player> returnPlayers() {
+        return players;
+    }
 }

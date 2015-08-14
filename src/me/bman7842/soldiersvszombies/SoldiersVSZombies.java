@@ -1,12 +1,17 @@
 package me.bman7842.soldiersvszombies;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import me.bman7842.soldiersvszombies.commands.CommandManager;
+import me.bman7842.soldiersvszombies.eventhandlers.joinGameEvent;
 import me.bman7842.soldiersvszombies.exceptions.ArenaNotFoundException;
+import me.bman7842.soldiersvszombies.managers.Arena;
+import me.bman7842.soldiersvszombies.managers.ArenaManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -14,9 +19,22 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class SoldiersVSZombies extends JavaPlugin {
 
+    public static Arena arena;
+
     @Override
     public void onEnable() {
+        //SETUP\\
+        ArenaManager.getInstance().setup();
+        if (ArenaManager.getInstance().getArenas().size() > 0) {
+            arena = ArenaManager.getInstance().getActiveArena();
+        }
 
+        //COMMANDS\\
+        getCommand("svsz").setExecutor(new CommandManager());
+
+        //EVENTS\\
+        PluginManager pm = Bukkit.getPluginManager();
+        pm.registerEvents(new joinGameEvent(), this);
     }
 
     public static void saveLocation(Location location, ConfigurationSection section) {
@@ -43,6 +61,6 @@ public class SoldiersVSZombies extends JavaPlugin {
     }
 
     public static Plugin getPlugin() {
-        return Bukkit.getPluginManager().getPlugin("gamemode");
+        return Bukkit.getPluginManager().getPlugin("SoldiersVSZombies");
     }
 }

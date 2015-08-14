@@ -4,7 +4,6 @@ import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
 import me.bman7842.soldiersvszombies.SoldiersVSZombies;
 import me.bman7842.soldiersvszombies.exceptions.ArenaNotFoundException;
 import me.bman7842.soldiersvszombies.utils.*;
-import me.bman7842.soldiersvszombies.utils.Spawn;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -42,7 +41,7 @@ public class Arena {
     private Soldiers soldiers;
     private Ghosts ghosts;
     private Lobby lobby;
-
+    private Integer lobbyCountdown;
     /**
      * @param id Name of arena.
      */
@@ -62,7 +61,7 @@ public class Arena {
         );
         this.state = ArenaState.WAITING;
 
-        if (FileManager.getArenas().contains(id+".ghostspawn")) {
+        if (FileManager.getArenas().contains(id + ".ghostspawn")) {
             Location spawn = null;
             try {
                 spawn = SoldiersVSZombies.parseLocation(FileManager.getArenas().<ConfigurationSection>get(id + ".ghostspawn"));
@@ -71,7 +70,7 @@ public class Arena {
             }
             ghosts = new Ghosts(spawn);
         }
-        if (FileManager.getArenas().contains(id+".soldierspawn")) {
+        if (FileManager.getArenas().contains(id + ".soldierspawn")) {
             Location spawn = null;
             try {
                 spawn = SoldiersVSZombies.parseLocation(FileManager.getArenas().<ConfigurationSection>get(id + ".soldierspawn"));
@@ -80,7 +79,7 @@ public class Arena {
             }
             soldiers = new Soldiers(spawn);
         }
-        if (FileManager.getArenas().contains(id+".zombiespawn")) {
+        if (FileManager.getArenas().contains(id + ".zombiespawn")) {
             Location spawn = null;
             try {
                 spawn = SoldiersVSZombies.parseLocation(FileManager.getArenas().<ConfigurationSection>get(id + ".zombiespawn"));
@@ -89,15 +88,44 @@ public class Arena {
             }
             zombies = new Zombies(spawn);
         }
-        if (FileManager.getArenas().contains(id+".lobbyspawn")) {
+        if (FileManager.getArenas().contains(id + ".lobby")) {
             Location spawn = null;
             try {
-                spawn = SoldiersVSZombies.parseLocation(FileManager.getArenas().<ConfigurationSection>get(id + ".lobbyspawn"));
+                spawn = SoldiersVSZombies.parseLocation(FileManager.getArenas().<ConfigurationSection>get(id + ".lobby"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
             lobby = new Lobby(spawn);
         }
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(SoldiersVSZombies.getPlugin(), new Runnable() {
+            @Override
+            public void run() {
+                if (lobby != null && zombies != null && soldiers != null && ghosts != null) {
+                    if (state.equals(ArenaState.WAITING)) {
+                        if (lobby.returnPlayers().size() >= 1) {
+                            lobbyCountdown = 20;
+                            state = ArenaState.LOBBY_COUNTDOWN;
+                            broadcastMessageIngame("Countdown starting! 20 seconds until game starts!");
+                        }
+                    } else if (state.equals(ArenaState.LOBBY_COUNTDOWN)) {
+                        if (lobby.returnPlayers().size() < 1) {
+                            lobbyCountdown = 0;
+                            state = ArenaState.WAITING;
+                            broadcastMessageIngame("Someone left, bummer, you need at least 6 players for the countdown to begin!");
+                        } else {
+                            lobbyCountdown = lobbyCountdown - 1;
+                            broadcastMessageIngame(lobbyCountdown.toString() + " seconds left until the game starts!");
+                            if (lobbyCountdown == 0) {
+                                broadcastMessageIngame("The game is starting, beginning the teleportation process!");
+                                //TOOD: Make a method that teleports users
+                                state = ArenaState.IN_GAME;
+                            }
+                        }
+                    }
+                }
+            }
+        }, 20L, 20L);
     }
 
     public String getID() {
@@ -113,7 +141,6 @@ public class Arena {
         if (ghosts.hasPlayer(player)) { return true; }
         if (zombies.hasPlayer(player)) { return true; }
         if (soldiers.hasPlayer(player)) { return true; }
-
         return false;
     }
 
@@ -179,6 +206,12 @@ public class Arena {
         if (soldiers.hasPlayer(p)) { soldiers.removePlayer(p); }
         if (zombies.hasPlayer(p)) { zombies.removePlayer(p); }
         if (lobby.hasPlayer(p)) { lobby.removePlayer(p); }
+    }
+
+    public void broadcastMessageIngame(String msg) {
+        for (Player p : lobby.returnPlayers()) {
+            Messages.sendInGameMessage(p, msg);
+        }
     }
 
     public void setState(ArenaState state) {

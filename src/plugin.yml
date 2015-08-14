@@ -1,0 +1,8 @@
+name: SoldiersVSZombies
+main: me.bman7842.soldiersvszombies.SoldiersVSZombies
+version: 0.1
+author: bman7842
+description: SoldiersVSZombies gamemode
+commands:
+  svsz:
+    description: Main SoldiersVSZombies command!

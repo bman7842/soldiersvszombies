@@ -23,7 +23,13 @@ public class createArena implements SubCommand {
         }
 
         if (p.hasPermission(CommandManager.svszAdmin)) {
-            if (ArenaManager.getInstance().getArena(args[0]) != null) {
+            StringBuilder x = new StringBuilder();
+            for (int i = 0; i < args.length; i++) {
+                x.append(args[i] + " ");
+            }
+            String name = x.toString().trim();
+
+            if (ArenaManager.getInstance().getArena(name) != null) {
                 Messages.sendErrorMessage(p, "An arena with this name already exists!");
                 return false;
             }
@@ -35,13 +41,17 @@ public class createArena implements SubCommand {
                 return false;
             }
 
-            FileManager.getArenas().set(args[0] + ".world", sel.getWorld().getName());
-            SoldiersVSZombies.saveLocation(sel.getMinimumPoint(), FileManager.getArenas().createSection(args[0] + ".cornerA"));
-            SoldiersVSZombies.saveLocation(sel.getMaximumPoint(), FileManager.getArenas().createSection(args[0] + ".cornerB"));
+            p.sendMessage(name);
+
+            FileManager.getArenas().set(name + ".world", sel.getWorld().getName());
+            SoldiersVSZombies.saveLocation(sel.getMinimumPoint(), FileManager.getArenas().createSection(name + ".cornerA"));
+            SoldiersVSZombies.saveLocation(sel.getMaximumPoint(), FileManager.getArenas().createSection(name + ".cornerB"));
             FileManager.getArenas().save();
             ArenaManager.getInstance().setup();
             Messages.sendAlertMessage(p, "Created arena: " + args[0] + ". " + "Now you must set the lobby location and spawn locations!");
             return true;
+        } else {
+            Messages.sendNoPerms(p);
         }
 
         return false;

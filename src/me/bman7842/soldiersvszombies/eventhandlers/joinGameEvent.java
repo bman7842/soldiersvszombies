@@ -23,10 +23,10 @@ public class joinGameEvent implements Listener {
             Messages.sendErrorMessage(p, "You are already in-game!");
         } else {
             if (mainArena.isState(Arena.ArenaState.IN_GAME)) {
-                Messages.sendAlertMessage(p, "Since the game has already begun you have joined as a ghost!");
+                Messages.sendInGameMessage(p, "Since the game has already begun you have joined as a ghost!");
                 mainArena.addGhost(p);
             } else {
-                Messages.sendAlertMessage(p, "You are now in the lobby, the game will be starting soon!");
+                Messages.sendInGameMessage(p, "You are now in the lobby, the game will be starting when there are at least 6 players!");
                 mainArena.addPlayerLobby(p);
             }
         }
